@@ -24,6 +24,8 @@ head(housingData)
 sapply(housingData, function(x) sum(is.na(x)))
 
 #Cleaning the data and adding back new values for the previously NA values
+#
+#One with Interpolation (ImputeTS) and one with mean
 housingData$total_bedrooms[is.na(housingData$total_bedrooms)]<-mean(housingData$total_bedrooms,na.rm=TRUE)
 
 #Double checking that data has been cleaned
@@ -31,10 +33,10 @@ sapply(housingData, function(x) sum(is.na(x)))
 
 #Creating a model to best identify median housing value and identify 
 #statistically significant
+#PULL OCEAN PROX
 housingModel <- lm(formula = median_house_value ~ latitude + longitude + 
                      population +total_rooms + housing_median_age + 
-                     total_bedrooms +households + median_income + 
-                     ocean_proximity, data = housingData)
+                     total_bedrooms +households + median_income, data = housingData)
 summary(housingModel)
 
 #Adjusted R^2: 0.6336
@@ -71,3 +73,11 @@ plotProx <- ggplot(housingData,
 
 grid.arrange(plotBedrooms, plotProx, plotLat, plotIncome, plotHouseholds, 
           plotAge, plotLong, plotRooms, plotPop, ncol=5)
+
+#AB Line
+#Function to neatly package model, graph and ab line
+
+#TODO:
+#Select 3 Variables
+#Begin testing set and training set
+#John J - Mapping
