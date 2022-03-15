@@ -1,0 +1,119 @@
+---
+title: "IST687Project"
+author: "John O'Rourke"
+date: "3/15/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Phase 1: Initial Start
+
+```{r Libraries}
+library(tidyverse)
+library(caret)
+library(kernlab)
+library(e1071)
+library(rpart)
+library(rpart.plot)
+library(imputeTS)
+library(ggplot2)
+library(ggmap)
+library(maps)
+library(mapproj)
+library(gridExtra)
+```
+
+```{r Importing}
+importHousing <- function(){
+  datasetHousing <- read_csv("F:/Syracuse/IST-687/Final Project/Dataset/housing.csv/housing.csv")
+  str(datasetHousing)
+  return(datasetHousing)
+}
+
+housingData <- importHousing()
+
+head(housingData)
+```
+
+```{r Cleaning}
+sapply(housingData, function(x) sum(is.na(x)))
+
+housingData$total_bedrooms[is.na(housingData$total_bedrooms)]<-mean(housingData$total_bedrooms,na.rm=TRUE)
+
+sapply(housingData, function(x) sum(is.na(x)))
+```
+
+## Phase 2: Model
+
+```{r Modeling}
+housingModel <- lm(formula = median_house_value ~ latitude + longitude + 
+                     population +total_rooms + housing_median_age + 
+                     total_bedrooms +households + median_income, data = housingData)
+summary(housingModel)
+
+```
+
+```{r Plotting}
+#ADD A/B Lines
+#Create function to neatly package the model, graph and A/B lines all in one
+plotPop <- ggplot(housingData, 
+                  aes(x=population, y=median_house_value)) + 
+  geom_point()
+plotRooms <- ggplot(housingData, 
+                    aes(x=total_rooms, y=median_house_value)) + 
+  geom_point()
+plotBedrooms <- ggplot(housingData, 
+                    aes(x=total_bedrooms, y=median_house_value)) + 
+  geom_point()
+plotAge <- ggplot(housingData, 
+                       aes(x=housing_median_age, y=median_house_value)) + 
+  geom_point()
+plotHouseholds <- ggplot(housingData, 
+                       aes(x=households, y=median_house_value)) + 
+  geom_point()
+plotIncome <- ggplot(housingData, 
+                       aes(x=median_income, y=median_house_value)) + 
+  geom_point()
+plotLat <- ggplot(housingData, 
+                       aes(x=latitude, y=median_house_value)) + 
+  geom_point()
+plotLong <- ggplot(housingData, 
+                       aes(x=longitude, y=median_house_value)) + 
+  geom_point()
+plotProx <- ggplot(housingData, 
+                       aes(x=ocean_proximity, y=median_house_value)) + 
+  geom_point()
+
+grid.arrange(plotBedrooms, plotProx, plotLat, plotIncome, plotHouseholds, 
+          plotAge, plotLong, plotRooms, plotPop, ncol=5)
+```
+
+## Phase 3: Training the model
+
+```{r Training and Testing set creation}
+set.seed(127)
+
+trainFrame.beds <- createDataPartition(y=housingData$total_bedrooms, p=.70, list = FALSE)
+trainSet.beds <- housingData[trainFrame.beds,]
+testSet.beds <- housingData[-trainFrame.beds,]
+
+dim(trainSet.beds)
+dim(testSet.beds)
+
+trainFrame.rooms <- createDataPartition(y=housingData$total_rooms, p=.70, list = FALSE)
+trainSet.rooms <- housingData[trainFrame.rooms,]
+testSet.rooms <- housingData[-trainFrame.rooms,]
+
+dim(trainSet.rooms)
+dim(testSet.rooms)
+
+trainFrame.income <- createDataPartition(y=housingData$median_income, p=.70, list = FALSE)
+trainSet.income <- housingData[trainFrame.income,]
+testSet.income <- housingData[-trainFrame.income,]
+
+dim(trainSet.income)
+dim(testSet.income)
+```
