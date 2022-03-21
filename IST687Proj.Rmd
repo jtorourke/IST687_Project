@@ -24,6 +24,7 @@ library(ggmap)
 library(maps)
 library(mapproj)
 library(gridExtra)
+library(keras)
 ```
 
 ```{r Importing}
@@ -93,27 +94,46 @@ grid.arrange(plotBedrooms, plotProx, plotLat, plotIncome, plotHouseholds,
 
 ## Phase 3: Training the model
 
-```{r Training and Testing set creation}
+```{r Model dataset creation}
+adjustedHousingData <- subset.data.frame(housingData, select = -c(10))
+str(adjustedHousingData)
+
 set.seed(127)
 
-trainFrame.beds <- createDataPartition(y=housingData$total_bedrooms, p=.70, list = FALSE)
-trainSet.beds <- housingData[trainFrame.beds,]
-testSet.beds <- housingData[-trainFrame.beds,]
+trainFrame.beds <- createDataPartition(y=adjustedHousingData$total_bedrooms, p=.70, list = FALSE)
+trainSet.beds <- adjustedHousingData[trainFrame.beds,]
+testSet.beds <- adjustedHousingData[-trainFrame.beds,]
 
 dim(trainSet.beds)
 dim(testSet.beds)
 
-trainFrame.rooms <- createDataPartition(y=housingData$total_rooms, p=.70, list = FALSE)
-trainSet.rooms <- housingData[trainFrame.rooms,]
-testSet.rooms <- housingData[-trainFrame.rooms,]
+trainFrame.rooms <- createDataPartition(y=adjustedHousingData$total_rooms, p=.70, list = FALSE)
+trainSet.rooms <- adjustedHousingData[trainFrame.rooms,]
+testSet.rooms <- adjustedHousingData[-trainFrame.rooms,]
 
 dim(trainSet.rooms)
 dim(testSet.rooms)
 
-trainFrame.income <- createDataPartition(y=housingData$median_income, p=.70, list = FALSE)
-trainSet.income <- housingData[trainFrame.income,]
-testSet.income <- housingData[-trainFrame.income,]
+trainFrame.income <- createDataPartition(y=adjustedHousingData$median_income, p=.70, list = FALSE)
+trainSet.income <- adjustedHousingData[trainFrame.income,]
+testSet.income <- adjustedHousingData[-trainFrame.income,]
 
 dim(trainSet.income)
 dim(testSet.income)
+```
+
+```{r Training Models}
+bedrooms.model <- train(median_house_value ~ ., data = trainSet.beds, method="svmLinear", preProcess=c("center","scale"))
+
+rooms.model <- train(median_house_value ~ ., data = trainSet.rooms, method="svmLinear", preProcess=c("center","scale"))
+
+income.model <- train(median_house_value ~ ., data = trainSet.income, method="svmLinear", preProcess=c("center","scale"))
+
+bedrooms.model$finalModel
+rooms.model$finalModel
+income.model$finalModel
+```
+
+```{r Creating Confusion Matrices}
+
 ```
